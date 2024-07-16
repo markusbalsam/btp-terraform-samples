@@ -1,6 +1,7 @@
 #################################
 # Account settings
 #################################
+globalaccount   = "<<globalaccount subdomain>>"
 region          = "us10"
 subaccount_name = "<<subaccount name>>"
 qas_labels      = "value1,value2,value3"

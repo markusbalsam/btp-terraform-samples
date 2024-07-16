@@ -5,7 +5,7 @@ resource "random_uuid" "uuid" {}
 
 locals {
   random_uuid = random_uuid.uuid.result
-  subdomain   = "custom_input${local.random_uuid}"
+  subdomain   = "custom-${local.random_uuid}"
   cf_org_name = substr(replace("${local.subdomain}", "-", ""), 0, 32)
 }
 
@@ -17,9 +17,6 @@ resource "btp_subaccount" "mission" {
   subdomain = local.subdomain
   region    = lower(var.region)
   usage     = "USED_FOR_PRODUCTION"
-  labels    = {
-    "qas_labels": toset(split(",", var.qas_labels))
-  }
 }
 
 ###############################################################################################
@@ -38,7 +35,7 @@ resource "btp_subaccount_role_collection_assignment" "subaccount_admins" {
 
 # Fetch all available environments for the subaccount
 data "btp_subaccount_environments" "all" {
-  subaccount_id = btp_subaccount.abap_subaccount.id
+  subaccount_id = btp_subaccount.mission.id
 }
 
 # Take the landscape label from the first CF environment if no environment label is provided
