@@ -9,6 +9,6 @@ output "cf_org_id" {
 }
 
 output "qas_labels" {
-  value = var.qas_labels
+  value = local.qas_labels
   description = "The label that was passed as an input variable"
 }

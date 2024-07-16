@@ -7,6 +7,7 @@ locals {
   random_uuid = random_uuid.uuid.result
   subdomain   = "custom-${local.random_uuid}"
   cf_org_name = substr(replace("${local.subdomain}", "-", ""), 0, 32)
+  qas_labels  = split(",", var.qas_labels)
 }
 
 ###############################################################################################
@@ -17,6 +18,9 @@ resource "btp_subaccount" "mission" {
   subdomain = local.subdomain
   region    = lower(var.region)
   usage     = "USED_FOR_PRODUCTION"
+  labels    = {
+    "qas_labels": toset(local.qas_labels)
+  }
 }
 
 ###############################################################################################
