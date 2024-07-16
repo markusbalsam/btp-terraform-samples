@@ -45,12 +45,6 @@ variable "cf_space_auditors" {
   description = "The list of Cloud Foundry space auditors."
 }
 
-variable "cf_space_name" {
-  type        = string
-  description = "The name of the Cloud Foundry space."
-  default     = "dev"
-}
-
 variable "abap_sid" {
   type        = string
   description = "The system ID (SID) of the ABAP system."
