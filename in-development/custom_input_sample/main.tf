@@ -4,18 +4,17 @@
 resource "random_uuid" "uuid" {}
 
 locals {
-  random_uuid = random_uuid.uuid.result
-  subdomain   = "custom-${local.random_uuid}"
-  cf_org_name = substr(replace("${local.subdomain}", "-", ""), 0, 32)
+  subdomain   = join("-", ["dc-mission-3585", random_uuid.uuid.result])
+  cf_org_name = substr(replace(local.subdomain, "-", ""), 0, 32)
   qas_labels  = split(",", var.qas_labels)
 }
 
 ###############################################################################################
 # Creation of subaccount
 ###############################################################################################
-resource "btp_subaccount" "mission" {
+resource "btp_subaccount" "dc_mission" {
   name      = var.subaccount_name
-  subdomain = local.subdomain
+  subdomain = join("-", ["test", "labels", random_uuid.uuid.result])
   region    = lower(var.region)
   usage     = "USED_FOR_PRODUCTION"
   labels    = {
@@ -28,7 +27,7 @@ resource "btp_subaccount" "mission" {
 ###############################################################################################
 resource "btp_subaccount_role_collection_assignment" "subaccount_admins" {
   for_each             = toset("${var.subaccount_admins}")
-  subaccount_id        = btp_subaccount.mission.id
+  subaccount_id        = btp_subaccount.dc_mission.id
   role_collection_name = "Subaccount Administrator"
   user_name            = each.value
 }
@@ -39,7 +38,7 @@ resource "btp_subaccount_role_collection_assignment" "subaccount_admins" {
 
 # Fetch all available environments for the subaccount
 data "btp_subaccount_environments" "all" {
-  subaccount_id = btp_subaccount.mission.id
+  subaccount_id = btp_subaccount.dc_mission.id
 }
 
 # Take the landscape label from the first CF environment if no environment label is provided
@@ -55,7 +54,7 @@ resource "null_resource" "cache_target_environment" {
 
 # Create the Cloud Foundry environment instance
 resource "btp_subaccount_environment_instance" "cloudfoundry" {
-  subaccount_id    = btp_subaccount.mission.id
+  subaccount_id    = btp_subaccount.dc_mission.id
   name             = local.cf_org_name
   environment_type = "cloudfoundry"
   service_name     = "cloudfoundry"

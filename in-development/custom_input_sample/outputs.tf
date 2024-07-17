@@ -1,5 +1,5 @@
 output "subaccount_id" {
-  value       = btp_subaccount.mission.id
+  value       = btp_subaccount.dc_mission.id
   description = "The ID of the mission subaccount."
 }
 
