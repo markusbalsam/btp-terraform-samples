@@ -42,3 +42,21 @@ variable "cf_landscape_label" {
   description = "The Cloud Foundry landscape (format example eu10-004)."
   default     = ""
 }
+
+variable "user_email" {
+  type        = string
+  description = "The user eail."
+  default     = ""
+}
+
+variable "user_first_name" {
+  type        = string
+  description = "The first name of the user."
+  default     = ""
+}
+
+variable "user_last_name" {
+  type        = string
+  description = "The last name of the user."
+  default     = ""
+}
