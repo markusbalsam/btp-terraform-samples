@@ -2,18 +2,34 @@
 
 ## Overview
 
-This directory prepares a Trial account for ABAP Trial. 
+This configuration prepares your existing Trial subaccount for ABAP Trial. The following configurations are applied:
+- Assignement the `abab-trial` entitlement with plan `shared` to the existing subaccount
+- Assignment of Cloud Foundry org and space roles
+- Creation of an ABAP Trial service instance in the Cloud Foundry space
+- Creation of a service key for the instance 
 
-The process is done in two steps:
+## Deploying the resources
 
-1. In the directory `step1` the following configurations are applied:
-   - Assignement the `abab-trial` entitlement with plan `shared` to the existing subaccount
-   - Creation of a Cloud Foundry environment instance, in case Cloud Foundry is disabled for the subaccount
+To deploy the resources of this step execute the following commands:
 
-2. In the directory `step2` the following configurations are applied:
-   - Creation a new Cloud Foundry space if no space with the provided name exists
-   - Assignment of Cloud Foundry org and space roles
-   - Creation of an ABAP Trial service instance in the Cloud Foundry space
-   - Creation of a service key for the instance 
+1. Initialize your workspace:
 
-Please refer to the READMEs in the subdirectories for further instructions.
+   ```bash
+   terraform init
+   ```
+
+1. Assign the variable values in a `*.tfvars` file e.g., the global account subdomain
+
+1. You can check what Terraform plans to apply based on your configuration:
+
+   ```bash
+   terraform plan -var-file="<name of your tfvars file>.tfvars" 
+   ```
+
+1. Apply your configuration to provision the resources:
+
+   ```bash
+   terraform apply -var-file="<name of your tfvars file>.tfvars"
+   ```
+
+> **Note** - Some outputs of the first step are needed as input for the second step.

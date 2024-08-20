@@ -1,3 +1,8 @@
+output "subaccount_id" {
+  value       = var.subaccount_id
+  description = "The ID of the subaccount."
+}
+
 output "abab_trial_service_instance_id" {
   value       = cloudfoundry_service_instance.abap_trial.id
   description = "The ID of the ABAP service instance."

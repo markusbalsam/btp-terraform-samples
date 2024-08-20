@@ -1,3 +1,26 @@
+
+###
+# Assignment of basic entitlements for an ABAP setup
+###
+resource "btp_subaccount_entitlement" "abap-trial" {
+  subaccount_id = var.subaccount_id
+  service_name  = "abap-trial"
+  plan_name     = "shared"
+  amount        = 1
+}
+
+###
+# Retrieval of existing CF environment instance
+###
+data "btp_subaccount_environment_instances" "all" {
+  subaccount_id = var.subaccount_id
+}
+
+locals {
+  cf_instance = [for env in data.btp_subaccount_environment_instances.all.values : env if env.service_name == "cloudfoundry" && env.environment_type == "cloudfoundry"][0]
+  cf_api_url = lookup(jsondecode(local.cf_instance.labels), "API Endpoint", "")
+}
+
 ###
 # Assignment of Cloud Foundry space roles 
 ###
@@ -5,27 +28,15 @@ resource "cloudfoundry_org_role" "org_managers" {
   for_each = toset(var.cf_org_managers)
   username = each.value
   type     = "organization_manager"
-  org      = var.cf_org_id
+  org      = local.cf_instance.platform_id
 }
 
 ###
-# Creation of Cloud Foundry space
+# Fetch Cloud Foundry space "dev"
 ###
 data "cloudfoundry_space" "dev" {
-  count = var.create_cf_space ? 0 : 1
-  name  = var.cf_space_name
-  org   = var.cf_org_id
-}
-
-resource "cloudfoundry_space" "dev" {
-  count = var.create_cf_space ? 1 : 0
-
-  name = var.cf_space_name
-  org  = var.cf_org_id
-}
-
-locals {
-  space_id = var.create_cf_space ? cloudfoundry_space.dev[0].id : data.cloudfoundry_space.dev[0].id
+  name  = "dev"
+  org   = local.cf_instance.platform_id
 }
 
 ###
@@ -35,14 +46,23 @@ resource "cloudfoundry_space_role" "space_managers" {
   for_each = toset(var.cf_space_managers)
   username = each.value
   type     = "space_manager"
-  space    = local.space_id
+  space    = data.cloudfoundry_space.dev.id
 }
 
 resource "cloudfoundry_space_role" "space_developers" {
   for_each = toset(var.cf_space_developers)
   username = each.value
   type     = "space_developer"
-  space    = local.space_id
+  space    = data.cloudfoundry_space.dev.id
+}
+
+###
+# Retrieve the current user information
+###
+data "btp_whoami" "me" {}
+
+data "cloudfoundry_users" "all" {
+  org = local.cf_instance.platform_id
 }
 
 ###
@@ -55,11 +75,11 @@ data "cloudfoundry_service" "abap_service_plans" {
 resource "cloudfoundry_service_instance" "abap_trial" {
   depends_on   = [cloudfoundry_space_role.space_managers, cloudfoundry_space_role.space_developers]
   name         = "abap-trial"
-  space        = local.space_id
+  space        = data.cloudfoundry_space.dev.id
   service_plan = data.cloudfoundry_service.abap_service_plans.service_plans["shared"]
   type         = "managed"
   parameters = jsonencode({
-    email = "${var.abap_admin_email}"
+    email = "${length(var.abap_admin_email) > 0 ? var.abap_admin_email : data.btp_whoami.me.email}"
   })
   timeouts = {
     create = "30m"
